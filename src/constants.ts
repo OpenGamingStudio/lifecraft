@@ -1,0 +1,9 @@
+export const WORLD_W = 256;
+export const WORLD_H = 128;
+export const REACH = 5; // portée de minage / pose, en tuiles
+export const STACK_MAX = 99;
+export const HOTBAR = 9;
+export const DAY_LENGTH = 300; // secondes pour un cycle complet
+export const MAX_HP = 100;
+export const FALL_SAFE_SPEED = 17; // tuiles/s : au-delà, dégâts de chute
+export const FALL_DAMAGE_PER_SPEED = 3.5;

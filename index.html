@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#14161d">
+  <title>LifeCraft</title>
+  <meta name="description" content="LifeCraft : jeu de sandbox et de survie 2D, minage, construction et exploration, dans le navigateur.">
+  <style>
+    :root { --ink:#14161d; --panel:#1e212b; --line:#3a3f4e; --amber:#f2b53a; --text:#eceef3; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin:0; height:100%; background:var(--ink); color:var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; overflow:hidden; overscroll-behavior:none; }
+    canvas { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:crosshair; user-select:none; -webkit-user-select:none; }
+    #touch { position:fixed; inset:0; pointer-events:none; display:none; }
+    #touch.on { display:block; }
+    #touch button, #menuBtn { pointer-events:auto; touch-action:none; font:600 15px system-ui, sans-serif; color:var(--text); background:rgba(30,33,43,.82); border:2px solid var(--line); border-radius:14px; user-select:none; -webkit-user-select:none; }
+    #touch button.down { background:var(--amber); color:var(--ink); border-color:var(--amber); }
+    #touch button[data-mode="place"] { border-color:var(--amber); color:var(--amber); }
+    .pad { position:absolute; bottom:calc(80px + env(safe-area-inset-bottom)); width:76px; height:76px; font-size:26px !important; }
+    #bLeft { left:calc(14px + env(safe-area-inset-left)); }
+    #bRight { left:calc(100px + env(safe-area-inset-left)); }
+    #bJump { right:calc(14px + env(safe-area-inset-right)); bottom:calc(86px + env(safe-area-inset-bottom)); width:88px; height:88px; border-radius:50%; }
+    #bMode { right:calc(116px + env(safe-area-inset-right)); bottom:calc(86px + env(safe-area-inset-bottom)); width:78px; height:50px; }
+    #menuBtn { position:fixed; top:calc(10px + env(safe-area-inset-top)); right:calc(10px + env(safe-area-inset-right)); width:44px; height:44px; font-size:20px; }
+    #menu { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(8,9,14,.72); }
+    #menu.on { display:flex; }
+    #menu .box { width:min(340px, 90vw); background:var(--panel); border:2px solid var(--line); border-radius:16px; padding:22px; }
+    #menu h1 { margin:0 0 4px; font-size:24px; letter-spacing:.04em; }
+    #menu p { margin:0 0 16px; color:#a9afbf; font-size:13px; line-height:1.45; }
+    #menu button { display:block; width:100%; margin:8px 0 0; padding:13px; font:600 15px system-ui, sans-serif; color:var(--text); background:#2a2e3b; border:2px solid var(--line); border-radius:12px; cursor:pointer; }
+    #menu button.primary { background:var(--amber); color:var(--ink); border-color:var(--amber); }
+    #menu button:focus-visible, #touch button:focus-visible { outline:3px solid #fff; outline-offset:2px; }
+    #menu .keys { margin-top:14px; font-size:12px; color:#a9afbf; line-height:1.6; }
+    @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+  </style>
+</head>
+<body>
+  <canvas id="game" aria-label="LifeCraft"></canvas>
+  <div id="touch">
+    <button class="pad" id="bLeft" aria-label="Gauche">◀</button>
+    <button class="pad" id="bRight" aria-label="Droite">▶</button>
+    <button id="bMode" data-mode="mine" aria-label="Basculer miner ou poser">Miner</button>
+    <button id="bJump" aria-label="Sauter">Saut</button>
+  </div>
+  <button id="menuBtn" aria-label="Menu">☰</button>
+  <div id="menu" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="box">
+      <h1>LifeCraft</h1>
+      <p>Creuse, bâtis, explore. Ta partie est sauvegardée automatiquement dans ce navigateur.</p>
+      <button class="primary" id="mResume">Reprendre</button>
+      <button id="mSound">Son : activé</button>
+      <button id="mNew">Nouveau monde</button>
+      <div class="keys">A/D ou ←/→ : marcher · Espace/W : sauter<br>Clic gauche : miner · Clic droit : poser<br>1–9 ou molette : choisir la case · M : son · Échap : menu<br>Tactile : boutons à l'écran, touche l'écran pour agir (Miner/Poser).</div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

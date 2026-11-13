@@ -35,4 +35,18 @@ describe('sauvegarde', () => {
     expect(parseSave('{"v":2}')).toBeNull();
     expect(parseSave('{"v":1,"seed":"x","edits":[],"player":{"x":1,"y":1},"hp":1}')).toBeNull();
   });
+  it('rejette les sauvegardes hostiles ou hors bornes', () => {
+    const ok = JSON.parse(JSON.stringify(new Game(3).serialize()));
+    expect(parseSave(JSON.stringify(ok))).not.toBeNull();
+    for (const bad of [
+      { ...ok, seed: 'x' },
+      { ...ok, hp: 'NaN' },
+      { ...ok, edits: [0] },
+      { ...ok, edits: [-1, 1] },
+      { ...ok, edits: [0, 99] },
+      { ...ok, player: { x: 1e12, y: 0 } },
+    ]) expect(parseSave(JSON.stringify(bad))).toBeNull();
+    expect(parseSave('{"v":1,"__proto__":{"a":1}')).toBeNull();
+    expect(parseSave('x'.repeat(6_000_000))).toBeNull();
+  });
 });

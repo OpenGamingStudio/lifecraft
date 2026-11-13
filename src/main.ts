@@ -4,24 +4,33 @@ import { Game } from './game';
 import { Input } from './input/input';
 import { Renderer } from './render/renderer';
 import { readSave, clearSave, writeSave } from './save';
-import { drawHud, hotbarLayout, slotAt } from './ui/hud';
+import { drawHud, hotbarLayout, slotAt, type Insets } from './ui/hud';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const $ = (id: string) => document.getElementById(id)!;
 const menu = $('menu');
 const touch = $('touch');
+const safe = $('safe');
+let inset: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
 
 const renderer = new Renderer(canvas);
 const sfx = new Sfx();
 const saved = readSave();
 const game = new Game(saved ? saved.seed : (Math.random() * 2 ** 31) | 0, saved);
 game.onSfx = (n) => sfx.play(n);
+const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+game.reducedMotion = calm.matches;
+calm.addEventListener('change', () => (game.reducedMotion = calm.matches));
+void document.fonts.load('600 14px Fredoka'); // le HUD est dessiné sur le canvas : ne pas attendre le DOM
 
 let menuOpen = false;
 function setMenu(open: boolean): void {
   menuOpen = open;
   menu.classList.toggle('on', open);
-  if (open) save();
+  if (open) {
+    save();
+    $('mResume').focus();
+  }
 }
 function setMute(m: boolean): void {
   sfx.muted = m;
@@ -31,7 +40,7 @@ function setMute(m: boolean): void {
 const input = new Input(
   canvas,
   {
-    slotAt: (x, y) => slotAt(hotbarLayout(renderer.w, renderer.h, renderer.uiScale), x * renderer.dpr, y * renderer.dpr),
+    slotAt: (x, y) => slotAt(hotbarLayout(renderer.w, renderer.h, renderer.uiScale, inset), x * renderer.dpr, y * renderer.dpr),
     onSelect: (i) => game.inv.select(i),
     onGesture: () => sfx.unlock(),
     onMenu: () => setMenu(!menuOpen),
@@ -43,6 +52,14 @@ const input = new Input(
 function resize(): void {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   renderer.resize(window.innerWidth, window.innerHeight, dpr);
+  // marges sûres (encoche, barre d'accueil) lues sur un élément témoin, en px canvas
+  const cs = getComputedStyle(safe);
+  const px = (v: string) => (parseFloat(v) || 0) * dpr;
+  inset = { top: px(cs.paddingTop), right: px(cs.paddingRight), bottom: px(cs.paddingBottom), left: px(cs.paddingLeft) };
+  // les boutons tactiles se posent au-dessus de la barre (une ou deux rangées) et de son étiquette
+  const scale = renderer.uiScale;
+  const bar = hotbarLayout(renderer.w, renderer.h, scale, inset);
+  document.documentElement.style.setProperty('--sol', `${Math.ceil((renderer.h - bar.y + 30 * scale) / dpr)}px`);
   renderer.follow(game, 0);
 }
 window.addEventListener('resize', resize);
@@ -90,7 +107,7 @@ function frame(now: number): void {
   }
   renderer.follow(game, menuOpen ? 0.0001 : dt);
   renderer.render(game);
-  drawHud(g2, game, renderer.w, renderer.h, renderer.uiScale, renderer.atlas, sfx.muted);
+  drawHud(g2, game, renderer.w, renderer.h, renderer.uiScale, renderer.atlas, sfx.muted, inset);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -3,6 +3,7 @@ import type { Game } from '../game';
 import { inReach } from '../player/mining';
 import { B } from '../world/blocks';
 import { daylight, sunHeight } from '../world/daycycle';
+import { uiScale } from '../ui/hud';
 import { hash2 } from '../world/rng';
 import { drawPlayer } from './sprite';
 import { buildAtlas, buildCracks, TEX, VARIANTS, WALL_ID } from './textures';
@@ -42,9 +43,7 @@ export class Renderer {
   }
 
   get uiScale(): number {
-    const css = Math.min(this.w, this.h) / this.dpr;
-    const fit = (this.w / this.dpr - 12) / 444; // la barre de 9 cases doit tenir en largeur
-    return this.dpr * Math.min(fit, 1.5, Math.max(0.85, css / 560));
+    return uiScale(this.w / this.dpr, this.h / this.dpr, this.dpr);
   }
 
   /** Tuile visée à partir d'un point de l'écran (pixels canvas). */

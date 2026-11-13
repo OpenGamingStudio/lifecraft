@@ -37,6 +37,7 @@ export class Game {
   messageTimer = 0;
   walkPhase = 0;
   swing = 0;
+  reducedMotion = false; // prefers-reduced-motion : pas d'éclair rouge, peu de particules
   private acc = 0;
   private tick = 0;
   private placeCd = 0;
@@ -172,7 +173,7 @@ export class Game {
 
   private burst(tx: number, ty: number, id: number, n: number): void {
     const [r, g, b] = blockDef(id).speck;
-    this.particles.burst(tx + 0.5, ty + 0.5, `rgb(${r},${g},${b})`, n);
+    this.particles.burst(tx + 0.5, ty + 0.5, `rgb(${r},${g},${b})`, this.reducedMotion ? Math.ceil(n * 0.2) : n);
   }
 
   hurt(dmg: number): void {

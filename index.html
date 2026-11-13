@@ -4,27 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#2a1e15">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
   <title>LifeCraft</title>
   <meta name="description" content="LifeCraft : jeu de sandbox et de survie 2D, minage, construction et exploration, dans le navigateur.">
 </head>
 <body>
   <canvas id="game" aria-label="LifeCraft" class="fixed inset-0 block size-full cursor-crosshair touch-none select-none"></canvas>
   <div id="touch" class="pointer-events-none fixed inset-0 hidden [&.on]:block">
-    <button class="btn-touch size-[76px] bottom-[calc(80px+env(safe-area-inset-bottom))] left-[calc(14px+env(safe-area-inset-left))]" id="bLeft" aria-label="Gauche"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1h1v6H5zM4 2h1v4H4zM3 3h1v2H3zM2 3.5h1v1H2z"/></svg></button>
-    <button class="btn-touch size-[76px] bottom-[calc(80px+env(safe-area-inset-bottom))] left-[calc(100px+env(safe-area-inset-left))]" id="bRight" aria-label="Droite"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h1v6H2zM3 2h1v4H3zM4 3h1v2H4zM5 3.5h1v1H5z"/></svg></button>
-    <button class="btn-touch h-[50px] w-[78px] right-[calc(116px+env(safe-area-inset-right))] bottom-[calc(86px+env(safe-area-inset-bottom))] data-[mode=place]:border-mousse data-[mode=place]:text-mousse [&.down]:data-[mode=place]:text-terre" id="bMode" data-mode="mine" aria-label="Basculer miner ou poser">Miner</button>
-    <button class="btn-touch size-[88px] right-[calc(14px+env(safe-area-inset-right))] bottom-[calc(86px+env(safe-area-inset-bottom))]" id="bJump" aria-label="Sauter"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3.5 0h1v1h-1zM3 1h2v1H3zM2 2h4v1H2zM1 3h6v1H1zM3 4h2v4H3z"/></svg></button>
+    <button class="btn-touch size-[76px] bottom-(--sol) left-[calc(14px+env(safe-area-inset-left))]" id="bLeft" aria-label="Gauche"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1h1v6H5zM4 2h1v4H4zM3 3h1v2H3zM2 3.5h1v1H2z"/></svg></button>
+    <button class="btn-touch size-[76px] bottom-(--sol) left-[calc(100px+env(safe-area-inset-left))]" id="bRight" aria-label="Droite"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h1v6H2zM3 2h1v4H3zM4 3h1v2H4zM5 3.5h1v1H5z"/></svg></button>
+    <button class="btn-touch h-[50px] w-[88px] right-[calc(14px+env(safe-area-inset-right))] bottom-[calc(var(--sol)+98px)] data-[mode=place]:border-mousse data-[mode=place]:text-mousse [&.down]:data-[mode=place]:text-terre" id="bMode" data-mode="mine" aria-label="Basculer miner ou poser">Miner</button>
+    <button class="btn-touch size-[88px] right-[calc(14px+env(safe-area-inset-right))] bottom-(--sol)" id="bJump" aria-label="Sauter"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3.5 0h1v1h-1zM3 1h2v1H3zM2 2h4v1H2zM1 3h6v1H1zM3 4h2v4H3z"/></svg></button>
   </div>
+  <div id="safe" class="pointer-events-none invisible fixed pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]" aria-hidden="true"></div>
   <button class="btn-touch pointer-events-auto fixed! size-11 top-[calc(10px+env(safe-area-inset-top))] right-[calc(10px+env(safe-area-inset-right))]" id="menuBtn" aria-label="Menu"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h6v1H1zM1 3.5h6v1H1zM1 6h6v1H1z"/></svg></button>
-  <div id="menu" class="fixed inset-0 hidden items-center justify-center bg-terre [&.on]:flex" role="dialog" aria-modal="true" aria-label="Menu">
-    <div class="w-[min(340px,90vw)] border-[3px] border-t-[10px] border-limon border-t-mousse bg-argile p-[22px]">
-      <h1 class="mb-1.5 mt-0 text-[26px] uppercase tracking-titre text-ocre">LifeCraft</h1>
-      <p class="mb-4 mt-0 text-sm leading-normal text-brume">Creuse, bâtis, explore. Ta partie est sauvegardée automatiquement dans ce navigateur.</p>
+  <div id="menu" class="fixed inset-0 hidden overflow-y-auto p-4 [&.on]:flex" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="m-auto w-full max-w-[340px] border-[3px] border-t-[10px] border-brume border-t-mousse bg-argile p-[22px]">
+      <h1 class="mb-1.5 mt-0 text-[40px] font-bold leading-none text-ocre">LifeCraft</h1>
+      <p class="mb-4 mt-0 text-[15px] leading-normal text-brume">Creuse, bâtis, explore. Ta partie est sauvegardée automatiquement dans ce navigateur.</p>
       <button class="btn-menu border-ocre! bg-ocre! text-terre!" id="mResume">Reprendre</button>
       <button class="btn-menu" id="mSound">Son : activé</button>
       <button class="btn-menu" id="mNew">Nouveau monde</button>
-      <div class="mt-4 border-t-2 border-limon pt-3 text-xs leading-[1.7] text-brume">A/D ou ←/→ : marcher · Espace/W : sauter<br>Clic gauche : miner · Clic droit : poser<br>1–9 ou molette : choisir la case · M : son · Échap : menu<br>Tactile : boutons à l'écran, touche l'écran pour agir (Miner/Poser).</div>
+      <div class="mt-4 border-t-2 border-limon pt-3 text-sm leading-[1.6] text-brume">A/D ou flèches : marcher · Espace/W : sauter<br>Clic gauche : miner · Clic droit : poser<br>1–9 ou molette : choisir la case · M : son · Échap : menu<br>Tactile : boutons à l'écran, touche l'écran pour agir (Miner/Poser).</div>
     </div>
   </div>
   <script type="module" src="/src/main.ts"></script>

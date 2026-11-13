@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./fonts/fredoka-latin-wght-normal.woff2") format("woff2");
+}
+
 @theme {
   --color-*: initial;
   --color-terre: #2a1e15;
@@ -11,13 +19,13 @@
   --color-os: #efe6d4;
   --color-brume: #b9a98d;
   --color-braise: #c9472e;
-  --font-sans: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
-  --tracking-titre: 0.14em;
+  --font-sans: "Fredoka", "Trebuchet MS", sans-serif;
 }
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; }
-  html, body { @apply m-0 h-full overflow-hidden overscroll-none bg-terre font-sans text-os; }
+  :root { --sol: 98px; } /* bas des boutons tactiles : recalculé par main.ts au-dessus de la barre */
+  html, body { @apply m-0 h-full touch-manipulation overflow-hidden overscroll-none bg-terre font-sans text-os; }
   button:focus-visible { @apply outline-[3px] outline-offset-2 outline-os; }
 }
 
@@ -25,13 +33,13 @@
   .ico { @apply size-3/5 fill-current; shape-rendering: crispEdges; }
   .btn-touch {
     @apply pointer-events-auto absolute flex touch-none select-none items-center justify-center
-      border-[3px] border-limon bg-argile p-0 text-[15px] font-bold text-os
+      border-[3px] border-brume bg-argile p-0 text-base font-semibold text-os
       [&.down]:border-ocre [&.down]:bg-ocre [&.down]:text-terre;
   }
   .btn-menu {
-    @apply block w-full mt-2 cursor-pointer border-[3px] border-limon bg-roche p-[13px]
-      text-left text-[15px] font-bold text-os active:translate-y-0.5;
+    @apply block w-full mt-2 min-h-11 cursor-pointer border-[3px] border-brume bg-roche p-[13px]
+      text-left text-base font-semibold text-os active:translate-y-0.5;
   }
 }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -10,18 +10,20 @@
 </head>
 <body>
   <canvas id="game" aria-label="LifeCraft" class="fixed inset-0 block size-full cursor-crosshair touch-none select-none"></canvas>
-  <div id="touch" class="pointer-events-none fixed inset-0 hidden [&.on]:block">
-    <button class="plaque biseau-a btn-touch btn-dir size-[76px] bottom-(--sol) left-[calc(14px+env(safe-area-inset-left))]" id="bLeft" aria-label="Gauche"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1h1v6H5zM4 2h1v4H4zM3 3h1v2H3zM2 3.5h1v1H2z"/></svg></button>
-    <button class="plaque biseau-b btn-touch btn-dir size-[76px] bottom-(--sol) left-[calc(102px+env(safe-area-inset-left))]" id="bRight" aria-label="Droite"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h1v6H2zM3 2h1v4H3zM4 3h1v2H4zM5 3.5h1v1H5z"/></svg></button>
-    <button class="plaque biseau-c btn-touch h-14 w-[88px] right-[calc(14px+env(safe-area-inset-right))] bottom-[calc(var(--sol)+98px)]" id="bMode" data-mode="mine" aria-label="Basculer miner ou poser">Miner</button>
-    <button class="plaque biseau-a btn-touch size-[88px] right-[calc(14px+env(safe-area-inset-right))] bottom-(--sol)" id="bJump" aria-label="Sauter"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M3.5 0h1v1h-1zM3 1h2v1H3zM2 2h4v1H2zM1 3h6v1H1zM3 4h2v4H3z"/></svg></button>
+  <div id="touch" class="hors-pause pointer-events-none fixed inset-0 hidden [&.on]:block">
+    <div class="manette" id="stick" role="group" aria-label="Manette : glisser pour marcher, pousser vers le haut pour sauter">
+      <svg class="absolute inset-0 size-full fill-encre" viewBox="0 0 120 120" aria-hidden="true"><path d="M9 60.5 18.5 52.6 18 68.2zM111 59.4 101.6 67.5 101.8 51.9zM60.4 9 68.3 18.4 52.2 18.1z"/></svg>
+      <span class="pommeau"></span>
+    </div>
+    <button class="plaque biseau-c btn-touch btn-mode" id="bMode" data-mode="mine" aria-label="Basculer miner ou poser">Miner</button>
+    <button class="plaque biseau-a btn-touch btn-saut" id="bJump" aria-label="Sauter"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.2 2.8 21 12.4 15.7 12.8 15.3 21 8.6 20.7 8.9 13 3 12.7z"/></svg></button>
   </div>
   <div id="safe" class="pointer-events-none invisible fixed pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]" aria-hidden="true"></div>
-  <button class="plaque biseau-b btn-touch pointer-events-auto fixed! size-11 top-[calc(10px+env(safe-area-inset-top))] right-[calc(10px+env(safe-area-inset-right))]" id="menuBtn" aria-label="Menu"><svg class="ico" viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h6v1H1zM1 3.5h6v1H1zM1 6h6v1H1z"/></svg></button>
-  <div id="menu" class="fixed inset-0 hidden overflow-y-auto p-4 [&.on]:flex" role="dialog" aria-modal="true" aria-label="Menu">
-    <div class="plaque biseau-d m-auto w-full max-w-[360px]">
-      <div class="bandeau px-5 pb-2.5 pt-3.5">
-        <h1 class="m-0 origin-left -rotate-2 text-[46px] font-bold leading-[0.95]">LifeCraft</h1>
+  <button class="plaque biseau-b btn-touch hors-pause pointer-events-auto fixed! size-11 top-[calc(10px+env(safe-area-inset-top))] right-[calc(10px+env(safe-area-inset-right))]" id="menuBtn" aria-label="Menu"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.1 21 4.5 21 7.4 3 7.9zM3 10.7 20.2 10.9 20.2 13.6 3 13.4zM3.3 16.5 21 16 21 18.9 3.3 19.4z"/></svg></button>
+  <div id="menu" class="volet fixed inset-0 flex overflow-y-auto p-4" role="dialog" aria-modal="true" aria-label="Menu">
+    <div id="menuPanel" class="plaque biseau-d m-auto w-full max-w-[520px]">
+      <div class="bandeau px-5 pb-3 pt-5">
+        <h1 class="m-0 origin-left -rotate-2 text-[clamp(2.75rem,8vw,5.5rem)] font-bold leading-[0.95]">LifeCraft</h1>
       </div>
       <div class="px-5 pb-5 pt-3.5">
         <p class="m-0 text-[17px] font-medium leading-snug">Creuse, bâtis, explore. Sauvegarde dans ce navigateur.</p>
@@ -32,9 +34,9 @@
           <li><b class="font-semibold">Marcher</b> A, D ou flèches</li>
           <li><b class="font-semibold">Sauter</b> Espace ou W</li>
           <li><b class="font-semibold">Miner</b> clic · <b class="font-semibold">Poser</b> clic droit</li>
-          <li><b class="font-semibold">Case</b> 1 à 9 ou molette</li>
+          <li><b class="font-semibold">Case</b> 1 à 8 ou molette</li>
           <li><b class="font-semibold">Son</b> M · <b class="font-semibold">Menu</b> Échap</li>
-          <li><b class="font-semibold">Au doigt</b> boutons à l'écran, touche le monde</li>
+          <li><b class="font-semibold">Au doigt</b> manette à gauche, boutons à droite, touche le monde</li>
         </ul>
       </div>
     </div>

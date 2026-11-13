@@ -17,11 +17,11 @@ Open the link above: no account, no install, fully offline once loaded.
 
 | Action | Clavier / souris | Mobile |
 |---|---|---|
-| Marcher | A / D ou ← / → | boutons ◀ ▶ |
-| Sauter | Espace, W ou ↑ | bouton Saut |
+| Marcher | A / D ou ← / → | manette, à gauche |
+| Sauter | Espace, W ou ↑ | bouton Saut, ou manette poussée vers le haut |
 | Miner (maintenir) | clic gauche sur un bloc | toucher l'écran, mode **Miner** |
-| Poser un bloc | clic droit | toucher l'écran, mode **Poser** (bouton au-dessus de Saut) |
-| Choisir la case | 1–9 ou molette | toucher la barre |
+| Poser un bloc | clic droit | toucher l'écran, mode **Poser** (bouton Miner / Poser) |
+| Choisir la case | 1–8 ou molette | toucher la barre (elle défile au doigt sur petit écran) |
 | Menu (son, nouveau monde) | Échap | bouton ☰ |
 | Son on/off | M | menu |
 

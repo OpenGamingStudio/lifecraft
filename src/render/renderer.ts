@@ -1,5 +1,5 @@
 import { REACH } from '../constants';
-import type { Game } from '../game';
+import { SHAKE_TIME, type Game } from '../game';
 import { inReach } from '../player/mining';
 import { B } from '../world/blocks';
 import { daylight, sunHeight } from '../world/daycycle';
@@ -75,12 +75,20 @@ export class Renderer {
     const day = daylight(game.phase);
     this.drawSky(game, day);
 
-    const x0 = Math.floor(this.camX);
-    const y0 = Math.floor(this.camY);
+    // blessure : secousse courte de la caméra (4 px CSS au plus, amortie), jamais hors du monde
+    let camX = this.camX;
+    let camY = this.camY;
+    if (game.shake > 0 && !game.reducedMotion) {
+      const amp = (4 * this.dpr * game.shake) / SHAKE_TIME / T;
+      camX = Math.min(Math.max(camX + Math.sin(game.shake * 150) * amp, 0), world.w - this.w / T);
+      camY = Math.min(Math.max(camY + Math.cos(game.shake * 190) * amp * 0.6, 0), world.h - this.h / T);
+    }
+    const x0 = Math.floor(camX);
+    const y0 = Math.floor(camY);
     const cols = Math.ceil(this.w / T) + 2;
     const rows = Math.ceil(this.h / T) + 2;
-    const ox = -(this.camX - x0) * T;
-    const oy = -(this.camY - y0) * T;
+    const ox = -(camX - x0) * T;
+    const oy = -(camY - y0) * T;
     const px = (x: number) => Math.round(ox + (x - x0) * T);
     const py = (y: number) => Math.round(oy + (y - y0) * T);
 

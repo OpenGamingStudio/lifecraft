@@ -1,0 +1,26 @@
+{
+  "name": "lifecraft",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LifeCraft : jeu de sandbox et de survie 2D vu de côté, jouable dans le navigateur et sur mobile.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

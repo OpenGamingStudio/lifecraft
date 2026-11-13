@@ -73,7 +73,7 @@ export function drawHud(g: CanvasRenderingContext2D, game: Game, w: number, h: n
     const fill = Math.min(1, Math.max(0, (game.hp / MAX_HP) * segs - i));
     g.fillStyle = '#2a1e15';
     g.fillRect(hx + i * (sw + sg), hy, sw, 12 * scale);
-    g.fillStyle = game.hp < 30 ? '#c9472e' : '#c9472e';
+    g.fillStyle = '#c9472e';
     g.fillRect(hx + i * (sw + sg), hy, sw * fill, 12 * scale);
   }
   g.font = `600 ${12 * scale}px "Trebuchet MS", "Gill Sans", sans-serif`;

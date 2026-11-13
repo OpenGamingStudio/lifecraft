@@ -1,3 +1,4 @@
+import './style.css';
 import { Sfx } from './audio/sfx';
 import { Game } from './game';
 import { Input } from './input/input';
@@ -95,4 +96,4 @@ function frame(now: number): void {
 requestAnimationFrame(frame);
 
 // accès aux fins de débogage / tests de bout en bout
-(window as unknown as { __lifecraft: unknown }).__lifecraft = { game, renderer };
+if (import.meta.env.DEV) (window as unknown as { __lifecraft: unknown }).__lifecraft = { game, renderer };

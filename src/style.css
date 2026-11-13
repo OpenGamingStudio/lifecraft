@@ -1,37 +1,100 @@
 @import "tailwindcss";
+/* « blur » est un événement dans input.ts, pas une classe : aucun flou dans le CSS compilé */
+@source not inline("blur");
 
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./fonts/fredoka-latin-wght-normal.woff2") format("woff2");
+}
+
+/* Identité LifeCraft v2 : interface claire en aplats (lagon, écume), contours d'encre. Seul le monde peut être sombre. */
 @theme {
   --color-*: initial;
-  --color-terre: #2a1e15;
-  --color-argile: #3b2b1e;
-  --color-roche: #5a4a3c;
-  --color-limon: #7a5f45;
-  --color-mousse: #86a84f;
-  --color-ocre: #dba046;
-  --color-os: #efe6d4;
-  --color-brume: #b9a98d;
-  --color-braise: #c9472e;
-  --font-sans: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
-  --tracking-titre: 0.14em;
+  --color-lagon: #00a6b4;
+  --color-ecume: #b8f1f0;
+  --color-papier: #ffffff;
+  --color-encre: #16110f;
+  --color-cuivre: #007c87;
+  --color-braise: #e8402a;
+  --color-miel: #ffc93c;
+  --color-pousse: #8ee07a;
+  --font-sans: "Fredoka", ui-rounded, sans-serif;
+  --shadow-dure: 3px 3px 0 #16110f;
 }
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; }
-  html, body { @apply m-0 h-full overflow-hidden overscroll-none bg-terre font-sans text-os; }
-  button:focus-visible { @apply outline-[3px] outline-offset-2 outline-os; }
+  :root { --sol: 102px; } /* bas des boutons tactiles : recalculé par main.ts au-dessus de la barre */
+  html, body { @apply m-0 h-full touch-manipulation overflow-hidden overscroll-none bg-lagon font-sans text-encre; }
+  /* focus : anneau papier (son ombre d'encre vient de la plaque), visible sur le ciel comme dans une grotte */
+  button:focus-visible { @apply outline-[3px] outline-offset-[4px] outline-papier; }
 }
 
 @layer components {
   .ico { @apply size-3/5 fill-current; shape-rendering: crispEdges; }
+
+  /* Plaque : aplat --fond, contour encre 3 px, ombre dure, coins biseautés (--b1 à --b4, sens horaire depuis
+     le coin haut gauche). clip-path rognerait l'ombre : contour et fond sont deux calques découpés, l'ombre
+     vient du filtre de l'élément. */
+  .plaque {
+    --b1: 8px; --b2: 8px; --b3: 8px; --b4: 8px;
+    --fond: var(--color-ecume);
+    @apply relative isolate;
+    filter: drop-shadow(var(--shadow-dure));
+  }
+  .plaque::before, .plaque::after { @apply absolute -z-10 content-['']; }
+  .plaque::before {
+    @apply inset-0 bg-encre;
+    clip-path: polygon(var(--b1) 0, calc(100% - var(--b2)) 0, 100% var(--b2), 100% calc(100% - var(--b3)),
+      calc(100% - var(--b3)) 100%, var(--b4) 100%, 0 calc(100% - var(--b4)), 0 var(--b1));
+  }
+  /* le biseau intérieur est plus court de 3 px × (2 − √2) : le contour garde 3 px sur les pans coupés */
+  .plaque::after {
+    @apply inset-[3px];
+    background: var(--fond);
+    clip-path: polygon(calc(var(--b1) - 1.75px) 0, calc(100% - var(--b2) + 1.75px) 0, 100% calc(var(--b2) - 1.75px),
+      100% calc(100% - var(--b3) + 1.75px), calc(100% - var(--b3) + 1.75px) 100%, calc(var(--b4) - 1.75px) 100%,
+      0 calc(100% - var(--b4) + 1.75px), 0 calc(var(--b1) - 1.75px));
+  }
+  .plaque:focus-visible::before { @apply -inset-[2px]; } /* et le contour d'encre s'épaissit */
+  /* découpes faites main : jamais deux plaques voisines avec le même biseau */
+  .biseau-a { --b1: 10px; --b2: 6px; --b3: 11px; --b4: 7px; }
+  .biseau-b { --b1: 6px; --b2: 11px; --b3: 7px; --b4: 12px; }
+  .biseau-c { --b1: 8px; --b2: 13px; --b3: 6px; --b4: 9px; }
+  .biseau-d { --b1: 15px; --b2: 9px; --b3: 17px; --b4: 11px; }
+
+  /* Bandeau lagon en tête de plaque : il porte le titre et suit les deux biseaux du haut. */
+  .bandeau {
+    @apply m-[3px] mb-0 border-b-[3px] border-encre bg-lagon;
+    clip-path: polygon(calc(var(--b1) - 1.75px) 0, calc(100% - var(--b2) + 1.75px) 0, 100% calc(var(--b2) - 1.75px),
+      100% 100%, 0 100%, 0 calc(var(--b1) - 1.75px));
+  }
+
+  /* appui : la plaque s'enfonce de 3 px sur son ombre */
   .btn-touch {
+    --fond: var(--color-lagon);
     @apply pointer-events-auto absolute flex touch-none select-none items-center justify-center
-      border-[3px] border-limon bg-argile p-0 text-[15px] font-bold text-os
-      [&.down]:border-ocre [&.down]:bg-ocre [&.down]:text-terre;
+      border-0 bg-transparent p-0 text-base font-semibold text-encre;
+  }
+  .btn-dir { --fond: var(--color-ecume); }
+  .btn-touch[data-mode="place"] { --fond: var(--color-pousse); }
+  .btn-touch.down {
+    --fond: var(--color-cuivre);
+    @apply translate-x-[3px] translate-y-[3px] text-papier filter-none;
   }
   .btn-menu {
-    @apply block w-full mt-2 cursor-pointer border-[3px] border-limon bg-roche p-[13px]
-      text-left text-[15px] font-bold text-os active:translate-y-0.5;
+    --fond: var(--color-papier);
+    @apply mt-3 block min-h-12 w-full cursor-pointer border-0 bg-transparent px-4 py-3
+      text-left text-[17px] font-semibold text-encre
+      active:translate-x-[3px] active:translate-y-[3px] active:filter-none;
   }
+  .btn-principal { --fond: var(--color-cuivre); @apply text-papier; }
+
+  /* Aide : une page de carnet, papier blanc posé un peu de travers. */
+  .note { @apply -rotate-1 border-2 border-encre bg-papier; }
 }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -4,7 +4,7 @@ import { Game } from './game';
 import { Input } from './input/input';
 import { Renderer } from './render/renderer';
 import { readSave, clearSave, writeSave } from './save';
-import { drawHud, hotbarLayout, slotAt, type Insets } from './ui/hud';
+import { drawHud, hotbarLayout, hudHeight, slotAt, type Insets } from './ui/hud';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const $ = (id: string) => document.getElementById(id)!;
@@ -59,7 +59,7 @@ function resize(): void {
   // les boutons tactiles se posent au-dessus de la barre (une ou deux rangées) et de son étiquette
   const scale = renderer.uiScale;
   const bar = hotbarLayout(renderer.w, renderer.h, scale, inset);
-  document.documentElement.style.setProperty('--sol', `${Math.ceil((renderer.h - bar.y + 30 * scale) / dpr)}px`);
+  document.documentElement.style.setProperty('--sol', `${Math.ceil(hudHeight(bar, renderer.h, scale) / dpr)}px`);
   renderer.follow(game, 0);
 }
 window.addEventListener('resize', resize);

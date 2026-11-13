@@ -160,7 +160,7 @@ export class Game {
     const id = this.world.get(tx, ty);
     const drop = blockDef(id).drop;
     if (drop && !this.inv.canAdd(drop)) {
-      this.say('Inventaire plein');
+      this.say('Sac plein.');
       this.onSfx('full');
       return;
     }

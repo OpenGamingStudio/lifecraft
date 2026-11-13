@@ -75,3 +75,16 @@ La logique du jeu (monde, physique, génération) reste **pure et testable**, s�
 ## Proposer une idée
 
 Pour une nouvelle mécanique ou un gros changement, ouvre d'abord une issue (une issue = un sujet, avec ses critères d'acceptation) pour en discuter avant de coder.
+
+## Tri des contributions
+
+Chaque issue et chaque PR passe par un tri avant d'être étudiée par l'équipe.
+
+1. **Accusé de réception** sous environ 1 h, avec l'étiquette `triage:en-cours`.
+2. **Tri** sur trois critères :
+   - **cohérence** : la contribution respecte l'esprit du jeu et les règles de ce fichier ;
+   - **pertinence** : elle apporte quelque chose d'utile et ne fait pas doublon ;
+   - **fonctionnement** : le jeu se lance et reste jouable (navigateur et mobile).
+3. **Décision** :
+   - `triage:valide` : la contribution passe ensuite à la validation par les développeurs du studio ;
+   - `triage:rejete` : un commentaire en donne le motif, puis l'issue ou la PR est fermée.

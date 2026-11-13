@@ -1,31 +1,37 @@
-:root {
-  --terre:#2a1e15; --argile:#3b2b1e; --roche:#5a4a3c; --limon:#7a5f45;
-  --mousse:#86a84f; --ocre:#dba046; --os:#efe6d4; --brume:#b9a98d; --braise:#c9472e;
-  --font: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+@import "tailwindcss";
+
+@theme {
+  --color-*: initial;
+  --color-terre: #2a1e15;
+  --color-argile: #3b2b1e;
+  --color-roche: #5a4a3c;
+  --color-limon: #7a5f45;
+  --color-mousse: #86a84f;
+  --color-ocre: #dba046;
+  --color-os: #efe6d4;
+  --color-brume: #b9a98d;
+  --color-braise: #c9472e;
+  --font-sans: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+  --tracking-titre: 0.14em;
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin:0; height:100%; background:var(--terre); color:var(--os); font-family:var(--font); overflow:hidden; overscroll-behavior:none; }
-canvas { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:crosshair; user-select:none; -webkit-user-select:none; }
-#touch { position:fixed; inset:0; pointer-events:none; display:none; }
-#touch.on { display:block; }
-#touch button, #menuBtn { pointer-events:auto; touch-action:none; display:flex; align-items:center; justify-content:center; font:700 15px var(--font); color:var(--os); background:var(--argile); border:3px solid var(--limon); border-radius:0; user-select:none; -webkit-user-select:none; padding:0; }
-#touch button.down { background:var(--ocre); color:var(--terre); border-color:var(--ocre); }
-#touch button[data-mode="place"] { border-color:var(--mousse); color:var(--mousse); }
-svg.ico { width:60%; height:60%; fill:currentColor; shape-rendering:crispEdges; }
-.pad { position:absolute; bottom:calc(80px + env(safe-area-inset-bottom)); width:76px; height:76px; }
-#bLeft { left:calc(14px + env(safe-area-inset-left)); }
-#bRight { left:calc(100px + env(safe-area-inset-left)); }
-#bJump { right:calc(14px + env(safe-area-inset-right)); bottom:calc(86px + env(safe-area-inset-bottom)); width:88px; height:88px; position:absolute; }
-#bMode { right:calc(116px + env(safe-area-inset-right)); bottom:calc(86px + env(safe-area-inset-bottom)); width:78px; height:50px; position:absolute; }
-#menuBtn { position:fixed; top:calc(10px + env(safe-area-inset-top)); right:calc(10px + env(safe-area-inset-right)); width:44px; height:44px; }
-#menu { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:var(--terre); }
-#menu.on { display:flex; }
-#menu .box { width:min(340px, 90vw); background:var(--argile); border:3px solid var(--limon); border-top:10px solid var(--mousse); padding:22px; }
-#menu h1 { margin:0 0 6px; font-size:26px; letter-spacing:.14em; text-transform:uppercase; color:var(--ocre); }
-#menu p { margin:0 0 16px; color:var(--brume); font-size:14px; line-height:1.5; }
-#menu button { display:block; width:100%; margin:8px 0 0; padding:13px; font:700 15px var(--font); color:var(--os); background:var(--roche); border:3px solid var(--limon); border-radius:0; cursor:pointer; text-align:left; }
-#menu button.primary { background:var(--ocre); color:var(--terre); border-color:var(--ocre); }
-#menu button:active { transform:translateY(2px); }
-#menu button:focus-visible, #touch button:focus-visible, #menuBtn:focus-visible { outline:3px solid var(--os); outline-offset:2px; }
-#menu .keys { margin-top:16px; padding-top:12px; border-top:2px solid var(--limon); font-size:12px; color:var(--brume); line-height:1.7; }
-@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+
+@layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body { @apply m-0 h-full overflow-hidden overscroll-none bg-terre font-sans text-os; }
+  button:focus-visible { @apply outline-[3px] outline-offset-2 outline-os; }
+}
+
+@layer components {
+  .ico { @apply size-3/5 fill-current; shape-rendering: crispEdges; }
+  .btn-touch {
+    @apply pointer-events-auto absolute flex touch-none select-none items-center justify-center
+      border-[3px] border-limon bg-argile p-0 text-[15px] font-bold text-os
+      [&.down]:border-ocre [&.down]:bg-ocre [&.down]:text-terre;
+  }
+  .btn-menu {
+    @apply block w-full mt-2 cursor-pointer border-[3px] border-limon bg-roche p-[13px]
+      text-left text-[15px] font-bold text-os active:translate-y-0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

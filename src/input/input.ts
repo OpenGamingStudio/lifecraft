@@ -13,7 +13,14 @@ export interface InputHooks {
   onGesture(): void;
   onMenu(): void;
   onMute(): void;
+  /** La feuille Fabrication est ouverte : le monde ne reçoit plus les appuis. */
+  sheetOpen(): boolean;
+  onSheetTap(x: number, y: number): void;
+  onSheetScroll(dy: number): void;
+  onCraft(): void;
 }
+
+const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
 
 export const STICK_REACH = 38; // course du pommeau de la manette, en px CSS
 const SLOP = 8; // en deçà, un doigt posé sur la barre est un appui, pas un défilement
@@ -40,6 +47,7 @@ export class Input {
   private pointerId = -1;
   // doigt posé sur la barre : 'fixed' = barre entière, 'tap' = barre réduite sans glisser, 'slide' = elle défile
   private bar: { id: number; x: number; slot: number; mode: 'fixed' | 'tap' | 'slide' } | null = null;
+  private sheet: { id: number; y: number; startY: number; x: number; moved: boolean } | null = null;
   touchMode: 'mine' | 'place' = 'mine';
   touchUi = false;
   hover: { x: number; y: number } | null = null; // dernier point visé (px CSS)
@@ -57,7 +65,11 @@ export class Input {
     canvas.addEventListener('pointermove', (e) => this.onMove(e));
     canvas.addEventListener('pointerup', (e) => this.onUp(e));
     canvas.addEventListener('pointercancel', (e) => this.onUp(e));
-    canvas.addEventListener('wheel', (e) => { e.preventDefault(); this.hooks.onSelect(this.sel + (e.deltaY > 0 ? 1 : -1)); }, { passive: false });
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (this.hooks.sheetOpen()) this.hooks.onSheetScroll(e.deltaY * dpr());
+      else this.hooks.onSelect(this.sel + (e.deltaY > 0 ? 1 : -1));
+    }, { passive: false });
     this.stick(buttons.stick);
     this.hold(buttons.jump, (v) => (this.touchJump = v));
     buttons.mode.addEventListener('pointerdown', (e) => {
@@ -68,6 +80,7 @@ export class Input {
       buttons.mode.dataset.mode = this.touchMode;
     });
     buttons.menu.addEventListener('pointerdown', (e) => { e.preventDefault(); this.hooks.onMenu(); });
+    buttons.craft.addEventListener('pointerdown', (e) => { e.preventDefault(); this.hooks.onGesture(); this.hooks.onCraft(); });
   }
 
   sel = 0;
@@ -128,7 +141,11 @@ export class Input {
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (down) {
       this.hooks.onGesture();
-      if (k >= '1' && k <= String(HOTBAR)) this.hooks.onSelect(Number(k) - 1);
+      if (k >= '0' && k <= '9' && !e.ctrlKey && !e.metaKey) {
+        const slot = k === '0' ? 9 : Number(k) - 1;
+        if (slot < HOTBAR) this.hooks.onSelect(slot);
+      }
+      if (k === 'c' && !e.repeat && !e.ctrlKey && !e.metaKey) this.hooks.onCraft();
       if (k === 'Escape' && !e.repeat) this.hooks.onMenu();
       if (k === 'm' && !e.repeat) this.hooks.onMute();
     }
@@ -147,6 +164,14 @@ export class Input {
     const p = this.rel(e);
     this.hover = p;
     if (e.pointerType === 'touch') this.touchUi = true;
+    if (this.hooks.sheetOpen()) {
+      // feuille ouverte : un appui sans glisser choisit une recette, un glissé vertical fait défiler
+      if (!this.sheet) {
+        this.sheet = { id: e.pointerId, y: p.y, startY: p.y, x: p.x, moved: false };
+        this.canvas.setPointerCapture(e.pointerId);
+      }
+      return;
+    }
     const slot = this.hooks.slotAt(p.x, p.y);
     const scrollable = this.hooks.barAt(p.x, p.y);
     if (slot >= 0 || scrollable) {
@@ -167,6 +192,13 @@ export class Input {
 
   private onMove(e: PointerEvent): void {
     const p = this.rel(e);
+    const sh = this.sheet;
+    if (sh && e.pointerId === sh.id) {
+      if (!sh.moved && Math.abs(p.y - sh.startY) >= SLOP) sh.moved = true;
+      if (sh.moved) this.hooks.onSheetScroll(-(p.y - sh.y) * dpr());
+      sh.y = p.y;
+      return;
+    }
     const b = this.bar;
     if (b && e.pointerId === b.id) {
       if (b.mode === 'tap' && Math.abs(p.x - b.x) >= SLOP) {
@@ -189,6 +221,12 @@ export class Input {
   }
 
   private onUp(e: PointerEvent): void {
+    const sh = this.sheet;
+    if (sh && e.pointerId === sh.id) {
+      if (!sh.moved && e.type === 'pointerup') this.hooks.onSheetTap(sh.x, sh.startY);
+      this.sheet = null;
+      return;
+    }
     const b = this.bar;
     if (b && e.pointerId === b.id) {
       if (b.mode === 'tap' && b.slot >= 0 && e.type === 'pointerup') this.hooks.onSelect(b.slot);
@@ -209,7 +247,8 @@ export class Input {
     const right = this.keys.has('d') || this.keys.has('ArrowRight') || this.stickMove > 0;
     c.move = left === right ? 0 : left ? -1 : 1;
     c.jump = this.keys.has('w') || this.keys.has('z') || this.keys.has('ArrowUp') || this.keys.has(' ') || this.touchJump || this.stickJump;
-    c.mine = this.pointer?.action === 'mine';
-    c.place = this.pointer?.action === 'place';
+    const shut = this.hooks.sheetOpen();
+    c.mine = !shut && this.pointer?.action === 'mine';
+    c.place = !shut && this.pointer?.action === 'place';
   }
 }

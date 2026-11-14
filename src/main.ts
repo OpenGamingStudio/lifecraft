@@ -4,6 +4,8 @@ import { Game } from './game';
 import { Input } from './input/input';
 import { Renderer } from './render/renderer';
 import { readSave, clearSave, writeSave } from './save';
+import { clampScroll, drawSheet, Sheet, sheetHit, sheetLayout } from './ui/sheet';
+import { RECIPES } from './items';
 import { BarScroll, barAt, drawHud, hotbarLayout, hudHeight, slotAt, type Insets } from './ui/hud';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -14,6 +16,7 @@ const menuBtn = $('menuBtn');
 const touch = $('touch');
 const safe = $('safe');
 let inset: Insets = { top: 0, right: 0, bottom: 0, left: 0 };
+const sheet = new Sheet();
 const bar = new BarScroll(); // défilement de la barre réduite (écran étroit)
 
 const renderer = new Renderer(canvas);
@@ -29,6 +32,7 @@ void document.fonts.load('600 14px Fredoka'); // le HUD est dessiné sur le canv
 let menuOpen = false;
 function setMenu(open: boolean): void {
   menuOpen = open;
+  if (open) sheet.close();
   if (open) {
     // la plaque sort du bouton Menu et y rentre : l'origine de son mouvement est le centre du bouton
     const b = menuBtn.getBoundingClientRect();
@@ -60,10 +64,29 @@ const input = new Input(
     onBarDrop: () => bar.drop(),
     onSelect: (i) => game.inv.select(i),
     onGesture: () => sfx.unlock(),
-    onMenu: () => setMenu(!menuOpen),
+    onMenu: () => (sheet.open ? sheet.close() : setMenu(!menuOpen)),
+    sheetOpen: () => sheet.open && !menuOpen,
+    onCraft: () => {
+      if (menuOpen) return;
+      sheet.toggle();
+      sfx.unlock();
+    },
+    onSheetScroll: (dy) => {
+      sheet.scroll = clampScroll(sheetLayout(renderer.w, renderer.h, renderer.uiScale, inset), sheet.scroll + dy);
+    },
+    onSheetTap: (x, y) => {
+      const l = sheetLayout(renderer.w, renderer.h, renderer.uiScale, inset);
+      const hit = sheetHit(l, sheet.scroll, x * renderer.dpr, y * renderer.dpr);
+      if (hit.kind === 'close' || hit.kind === 'outside') sheet.close();
+      else if (hit.kind === 'row') {
+        const r = RECIPES[hit.index];
+        const err = game.craft(r);
+        game.say(err ?? `${r.name} : fait.`);
+      }
+    },
     onMute: () => setMute(!sfx.muted),
   },
-  { stick: $('stick'), jump: $('bJump'), mode: $('bMode'), menu: menuBtn },
+  { stick: $('stick'), jump: $('bJump'), mode: $('bMode'), menu: menuBtn, craft: $('bCraft') },
 );
 
 function resize(): void {
@@ -134,6 +157,7 @@ function frame(now: number): void {
   renderer.follow(game, menuOpen ? 0.0001 : dt);
   renderer.render(game);
   drawHud(g2, game, renderer.w, renderer.h, renderer.uiScale, renderer.atlas, { muted: sfx.muted, inset, first: bar.pos, pressed: input.pressed });
+  if (sheet.open && !menuOpen) drawSheet(g2, game, renderer.w, renderer.h, renderer.uiScale, renderer.atlas, inset, sheet);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

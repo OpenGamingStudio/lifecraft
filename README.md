@@ -21,11 +21,12 @@ Open the link above: no account, no install, fully offline once loaded.
 | Sauter | Espace, W ou ↑ | bouton Saut, ou manette poussée vers le haut |
 | Miner (maintenir) | clic gauche sur un bloc | toucher l'écran, mode **Miner** |
 | Poser un bloc | clic droit | toucher l'écran, mode **Poser** (bouton Miner / Poser) |
-| Choisir la case | 1–8 ou molette | toucher la barre (elle défile au doigt sur petit écran) |
+| Choisir la case | 1–9, 0 ou molette | toucher la barre (elle défile au doigt sur petit écran) |
+| Fabrication (fendre, cordelette, Banc d'artisan, outils) | C | bouton Fabriquer |
 | Menu (son, nouveau monde) | Échap | bouton ☰ |
 | Son on/off | M | menu |
 
-Le monde est un terrain fini généré à partir d'une graine : surface, terre, pierre, minerais (cuivre, fer, cristal lumineux) et grottes. Le jour devient nuit toutes les 5 minutes ; une lanterne éclaire autour de toi. Les chutes de plus de 4 blocs font mal ; à 0 PV tu réapparais au point de départ. La partie est sauvegardée automatiquement dans le navigateur (localStorage).
+Le monde est un terrain fini généré à partir d'une graine : surface, arbres, terre, pierre, minerais (cuivre, fer, cristal lumineux) et grottes. Le jour devient nuit toutes les 5 minutes ; une lanterne éclaire autour de toi. Les chutes de plus de 4 blocs font mal ; à 0 PV tu réapparais au point de départ. Fendre un Tronc, tresser des Fibres de Feuillage et poser un Banc d'artisan donnent des outils de latte ou de pierre (2 et 3,5 fois plus rapides, durabilité 40 et 90). La partie est sauvegardée automatiquement dans le navigateur (localStorage).
 
 ## Développer / Develop
 

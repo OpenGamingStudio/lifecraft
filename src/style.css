@@ -27,14 +27,15 @@
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; }
-  :root { --sol: 102px; } /* bas des boutons tactiles : recalculé par main.ts au-dessus de la barre */
+  :root { --sol: 114px; } /* bas des commandes tactiles : recalculé par main.ts au-dessus de la barre */
   html, body { @apply m-0 h-full touch-manipulation overflow-hidden overscroll-none bg-lagon font-sans text-encre; }
   /* focus : anneau papier (son ombre d'encre vient de la plaque), visible sur le ciel comme dans une grotte */
   button:focus-visible { @apply outline-[3px] outline-offset-[4px] outline-papier; }
 }
 
 @layer components {
-  .ico { @apply size-3/5 fill-current; shape-rendering: crispEdges; }
+  /* pictogrammes dessinés pour le jeu : pleins, contour 2 px arrondi par le trait */
+  .ico { @apply size-3/5 fill-current stroke-current stroke-2; stroke-linejoin: round; }
 
   /* Plaque : aplat --fond, contour encre 3 px, ombre dure, coins biseautés (--b1 à --b4, sens horaire depuis
      le coin haut gauche). clip-path rognerait l'ombre : contour et fond sont deux calques découpés, l'ombre
@@ -79,7 +80,13 @@
     @apply pointer-events-auto absolute flex touch-none select-none items-center justify-center
       border-0 bg-transparent p-0 text-base font-semibold text-encre;
   }
-  .btn-dir { --fond: var(--color-ecume); }
+  /* Saut, et Miner / Poser au-dessus ; sur un écran couché, le saut est moins haut : Miner / Poser reste sous le bouton Menu */
+  .btn-saut { @apply right-[calc(14px+env(safe-area-inset-right))] bottom-(--sol) h-[88px] w-[88px]; }
+  .btn-mode { @apply right-[calc(14px+env(safe-area-inset-right))] bottom-[calc(var(--sol)+98px)] h-14 w-[88px]; }
+  @media (max-height: 420px) {
+    .btn-saut { @apply h-[76px]; }
+    .btn-mode { @apply bottom-[calc(var(--sol)+86px)]; }
+  }
   .btn-touch[data-mode="place"] { --fond: var(--color-pousse); }
   .btn-touch.down {
     --fond: var(--color-cuivre);
@@ -92,9 +99,40 @@
       active:translate-x-[3px] active:translate-y-[3px] active:filter-none;
   }
   .btn-principal { --fond: var(--color-cuivre); @apply text-papier; }
+  .alerte { --fond: var(--color-miel); }
+
+  /* Manette tactile : disque écume opaque, contour encre 3 px, ombre dure. Le pommeau lagon suit le pouce
+     (--jx et --jy posés par input.ts) et passe au cuivre sous l'appui. */
+  .manette {
+    @apply pointer-events-auto absolute bottom-(--sol) left-[calc(14px+env(safe-area-inset-left))] size-[120px]
+      touch-none select-none rounded-full border-[3px] border-encre bg-ecume shadow-dure;
+  }
+  .pommeau {
+    @apply absolute left-1/2 top-1/2 size-14 rounded-full border-[3px] border-encre bg-lagon shadow-dure;
+    transform: translate(calc(-50% + var(--jx, 0px)), calc(-50% + var(--jy, 0px)));
+  }
+  .manette.down .pommeau { @apply bg-cuivre shadow-none; }
+  @media (max-height: 420px) {
+    .manette { @apply size-[104px]; }
+  }
+
+  /* Menu : la plaque sort du bouton qui l'appelle et y rentre (transform-origin posé par main.ts),
+     ressort sans rebond de 0,35 s. Pendant la pause, les commandes de jeu sont rangées. */
+  .volet { @apply invisible; transition: visibility 0s linear 0.35s; }
+  .volet.on { @apply visible; transition-delay: 0s; }
+  .volet > .plaque { transform: scale(0.08); transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+  .volet.on > .plaque { transform: none; }
+  .pause .hors-pause { @apply invisible; }
 
   /* Aide : une page de carnet, papier blanc posé un peu de travers. */
   .note { @apply -rotate-1 border-2 border-encre bg-papier; }
 }
 
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* Mouvements réduits : rien ne bouge ; le menu s'ouvre et se ferme en fondu de 150 ms. */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .volet { transition: visibility 0s linear 150ms !important; }
+  .volet.on { transition-delay: 0s !important; }
+  .volet > .plaque { transform: none; opacity: 0; transition: opacity 150ms linear !important; }
+  .volet.on > .plaque { opacity: 1; }
+}

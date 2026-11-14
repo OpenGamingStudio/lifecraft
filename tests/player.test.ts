@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { FALL_DAMAGE_PER_SPEED, FALL_SAFE_SPEED, MAX_HP } from '../src/constants';
-import { Game } from '../src/game';
+import { FALL_DAMAGE_PER_SPEED, FALL_SAFE_SPEED, HOTBAR, LOW_HP, MAX_HP } from '../src/constants';
+import { BLINK_TIME, Game, SHAKE_TIME } from '../src/game';
 import { Inventory } from '../src/player/inventory';
 import { advanceMining, canPlace, inReach } from '../src/player/mining';
 import { createBody, fallDamage, stepBody, JUMP_SPEED } from '../src/player/physics';
@@ -92,7 +92,7 @@ describe('inventaire', () => {
   });
   it('renvoie le surplus quand les 9 cases sont pleines', () => {
     const inv = new Inventory();
-    expect(inv.add(B.STONE, 9 * 99 + 5)).toBe(5);
+    expect(inv.add(B.STONE, HOTBAR * 99 + 5)).toBe(5);
     expect(inv.canAdd(B.IRON)).toBe(false);
   });
   it('sérialise et recharge', () => {
@@ -103,6 +103,14 @@ describe('inventaire', () => {
     inv2.load(JSON.parse(JSON.stringify(inv.serialize())), inv.selected);
     expect(inv2.slots[0]).toEqual({ id: B.COPPER, count: 7 });
     expect(inv2.selected).toBe(3);
+  });
+  it('reprend une sauvegarde à neuf cases : la neuvième rejoint une pile ou une case libre', () => {
+    const inv = new Inventory();
+    inv.load([[B.STONE, 90], null, [B.IRON, 4], null, null, null, null, null, [B.STONE, 20]], 8);
+    expect(inv.slots).toHaveLength(HOTBAR);
+    expect(inv.slots[0]).toEqual({ id: B.STONE, count: 99 });
+    expect(inv.slots[1]).toEqual({ id: B.STONE, count: 11 });
+    expect(inv.selected).toBe(0);
   });
 });
 
@@ -159,6 +167,27 @@ describe('boucle de jeu', () => {
     for (let i = 0; i < 30; i++) g.update(0.1);
     expect(g.hp).toBe(MAX_HP);
     expect(g.deadTimer).toBe(0);
+  });
+  it('blessure : secousse courte, et la jauge clignote une seule fois en passant sous 20 %', () => {
+    const g = new Game(7);
+    g.hurt(50);
+    expect(g.shake).toBe(SHAKE_TIME);
+    expect(g.lowBlink).toBe(0);
+    g.hurt(35);
+    expect(g.hp).toBeLessThan(LOW_HP);
+    expect(g.lowBlink).toBe(BLINK_TIME);
+    for (let i = 0; i < 10; i++) g.update(0.1);
+    expect(g.shake).toBe(0);
+    expect(g.lowBlink).toBe(0);
+    g.hurt(5); // déjà sous le seuil : pas de second clignotement
+    expect(g.lowBlink).toBe(0);
+  });
+  it('mouvements réduits : ni secousse ni clignotement', () => {
+    const g = new Game(7);
+    g.reducedMotion = true;
+    g.hurt(90);
+    expect(g.shake).toBe(0);
+    expect(g.lowBlink).toBe(0);
   });
   it('subit des dégâts après une longue chute', () => {
     const g = new Game(7);

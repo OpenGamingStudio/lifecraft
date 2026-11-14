@@ -56,13 +56,16 @@ export class Inventory {
 
   load(data: unknown, selected: number): void {
     if (!Array.isArray(data)) return;
-    this.slots = Array.from({ length: HOTBAR }, (_, i) => {
-      const d = data[i];
-      if (Array.isArray(d) && Number.isInteger(d[0]) && isPlaceable(d[0]) && Number.isFinite(d[1]) && d[1] >= 1) {
-        return { id: d[0], count: Math.min(STACK_MAX, d[1] | 0) };
-      }
-      return null;
-    });
+    const read = (d: unknown): Slot | null =>
+      Array.isArray(d) && Number.isInteger(d[0]) && isPlaceable(d[0]) && Number.isFinite(d[1]) && d[1] >= 1
+        ? { id: d[0], count: Math.min(STACK_MAX, d[1] | 0) }
+        : null;
+    this.slots = Array.from({ length: HOTBAR }, (_, i) => read(data[i]));
+    // sauvegarde d'une version à neuf cases : le contenu en trop rejoint une pile ou une case libre
+    for (const d of data.slice(HOTBAR)) {
+      const extra = read(d);
+      if (extra) this.add(extra.id, extra.count);
+    }
     this.select(Number.isInteger(selected) ? selected : 0);
   }
 }

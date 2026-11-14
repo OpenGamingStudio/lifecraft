@@ -1,4 +1,4 @@
-import { FALL_DAMAGE_PER_SPEED, FALL_SAFE_SPEED, MAX_HP, WORLD_H, WORLD_W } from './constants';
+import { FALL_DAMAGE_PER_SPEED, FALL_SAFE_SPEED, LOW_HP, MAX_HP, WORLD_H, WORLD_W } from './constants';
 import { Inventory } from './player/inventory';
 import { advanceMining, canPlace, inReach, type MiningState } from './player/mining';
 import { Particles } from './player/particles';
@@ -20,6 +20,8 @@ export interface Controls {
 }
 
 const STEP = 1 / 120;
+export const SHAKE_TIME = 0.12; // secousse de caméra quand on est blessé, en secondes
+export const BLINK_TIME = 0.4; // clignotement unique de la jauge quand la vie passe sous le seuil bas
 
 export class Game {
   world!: World;
@@ -32,12 +34,13 @@ export class Game {
   mining: MiningState | null = null;
   controls: Controls = { move: 0, jump: false, mine: false, place: false, aim: null };
   deadTimer = 0;
-  hurtFlash = 0;
+  shake = 0; // secousse de caméra restante (s)
+  lowBlink = 0; // clignotement de la jauge de vie restant (s)
   message = '';
   messageTimer = 0;
   walkPhase = 0;
   swing = 0;
-  reducedMotion = false; // prefers-reduced-motion : pas d'éclair rouge, peu de particules
+  reducedMotion = false; // prefers-reduced-motion : ni secousse ni clignotement, peu de particules
   private acc = 0;
   private tick = 0;
   private placeCd = 0;
@@ -60,6 +63,8 @@ export class Game {
     if (save) this.inv.load(save.inv, save.sel);
     this.mining = null;
     this.deadTimer = 0;
+    this.shake = 0;
+    this.lowBlink = 0;
     this.particles.list.length = 0;
     this.light.dirty = true;
   }
@@ -90,7 +95,8 @@ export class Game {
       this.step(STEP);
     }
     this.particles.update(dt);
-    this.hurtFlash = Math.max(0, this.hurtFlash - dt * 2);
+    this.shake = Math.max(0, this.shake - dt);
+    this.lowBlink = Math.max(0, this.lowBlink - dt);
     this.messageTimer = Math.max(0, this.messageTimer - dt);
     this.phase = advance(this.phase, dt);
     this.light.update();
@@ -108,8 +114,13 @@ export class Game {
     if (res.jumped) this.onSfx('jump');
     if (res.impact > 0) {
       const dmg = fallDamage(res.impact, FALL_SAFE_SPEED, FALL_DAMAGE_PER_SPEED);
-      if (dmg > 0) this.hurt(dmg);
-      else if (res.impact > 7) this.onSfx('land');
+      if (dmg > 0) {
+        this.hurt(dmg);
+        // éclat de la matière frappée, sous les pieds
+        const fx = Math.floor(p.x);
+        const fy = Math.floor(p.y + 0.01);
+        if (this.world.get(fx, fy) !== B.AIR) this.burst(fx, fy - 1, this.world.get(fx, fy), 8);
+      } else if (res.impact > 7) this.onSfx('land');
     }
     if (p.onGround && Math.abs(p.vx) > 0.3) this.walkPhase += Math.abs(p.vx) * dt * 1.7;
     else if (!p.onGround) this.walkPhase += dt * 4;
@@ -178,9 +189,13 @@ export class Game {
 
   hurt(dmg: number): void {
     if (this.deadTimer > 0) return;
+    const before = this.hp;
     this.hp = Math.max(0, this.hp - dmg);
     this.sinceHurt = 0;
-    this.hurtFlash = 1;
+    if (!this.reducedMotion) {
+      this.shake = SHAKE_TIME;
+      if (before >= LOW_HP && this.hp < LOW_HP && this.hp > 0) this.lowBlink = BLINK_TIME;
+    }
     if (this.hp <= 0) {
       this.deadTimer = 2;
       this.onSfx('die');

@@ -17,10 +17,10 @@ describe('génération', () => {
     const w = generateWorld(42, 256, 128);
     const count: Record<number, number> = {};
     for (const t of w.tiles) count[t] = (count[t] ?? 0) + 1;
-    for (const id of [B.AIR, B.MOSS, B.HUMUS, B.STONE, B.COPPER, B.IRON, B.CRYSTAL, B.BEDROCK]) expect(count[id]).toBeGreaterThan(0);
+    for (const id of [B.AIR, B.MOSS, B.HUMUS, B.STONE, B.COPPER, B.IRON, B.CRYSTAL, B.BEDROCK, B.LOG, B.LEAVES]) expect(count[id]).toBeGreaterThan(0);
     for (let x = 0; x < w.w; x++) {
       expect(w.get(x, w.surface[x])).toBe(B.MOSS);
-      expect(w.get(x, w.surface[x] - 1)).toBe(B.AIR);
+      expect([B.AIR, B.LOG, B.LEAVES]).toContain(w.get(x, w.surface[x] - 1)); // l'air, ou le pied d'un arbre
       expect(w.get(x, w.h - 1)).toBe(B.BEDROCK);
     }
   });

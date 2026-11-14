@@ -64,6 +64,8 @@ export class Sfx {
       case 'hurt': this.tone(220, 0.25, 'sawtooth', 0.14, 70); this.noise(0.12, 0.3, 500); break;
       case 'die': this.tone(300, 0.7, 'sawtooth', 0.14, 40); break;
       case 'respawn': [440, 554, 659].forEach((f, i) => this.tone(f, 0.18, 'triangle', 0.12, f, i * 0.09)); break;
+      case 'craft': [330, 440].forEach((f, i) => this.tone(f, 0.1, 'square', 0.08, f * 1.25, i * 0.07)); this.noise(0.05, 0.2, 2400, 'bandpass'); break;
+      case 'snap': this.noise(0.08, 0.6, 3200, 'highpass'); this.tone(520, 0.1, 'sawtooth', 0.14, 90); this.tone(160, 0.2, 'triangle', 0.16, 60, 0.05); break;
       case 'full': this.tone(120, 0.12, 'square', 0.08); break;
     }
   }

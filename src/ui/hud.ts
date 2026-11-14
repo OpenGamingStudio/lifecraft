@@ -1,6 +1,6 @@
 import { HOTBAR, LOW_HP, MAX_HP } from '../constants';
 import { BLINK_TIME, type Game } from '../game';
-import { blockDef } from '../world/blocks';
+import { nameOf, toolOf } from '../items';
 
 const SLOT = 56; // côté d'une case en px CSS à l'échelle 1 (64 px sur tablette : voir uiScale)
 const GAP = 6;
@@ -9,14 +9,14 @@ const MARGIN = 12;
 const BAND = 6; // débord du bandeau lagon autour des cases
 const ROOM = 46; // place au-dessus de la barre pour l'étiquette de la case choisie
 export const VISIBLE = 5; // cases visibles de la barre réduite (écran étroit) : les autres défilent
-const FONT = '"Fredoka", ui-rounded, sans-serif';
+export const FONT = '"Fredoka", ui-rounded, sans-serif';
 // identité LifeCraft v2 : mêmes valeurs que le @theme de style.css (l'interface reste claire, de jour comme de nuit)
-const LAGON = '#00a6b4';
-const ECUME = '#b8f1f0';
-const PAPIER = '#ffffff';
-const ENCRE = '#16110f';
-const CUIVRE = '#007c87';
-const BRAISE = '#e8402a';
+export const LAGON = '#00a6b4';
+export const ECUME = '#b8f1f0';
+export const PAPIER = '#ffffff';
+export const ENCRE = '#16110f';
+export const CUIVRE = '#007c87';
+export const BRAISE = '#e8402a';
 
 /** Biseaux d'une plaque en px CSS, sens horaire depuis le coin haut gauche. */
 type Bevels = readonly [number, number, number, number];
@@ -148,7 +148,7 @@ function bevelPath(g: CanvasRenderingContext2D, x: number, y: number, w: number,
 }
 
 /** Plaque de l'identité : aplat opaque, contour encre, ombre dure, coins biseautés ; bandeau lagon en tête si `band` > 0. */
-function plaque(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill: string, c: Bevels, scale: number, line = 3, band = 0): void {
+export function plaque(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, fill: string, c: Bevels, scale: number, line = 3, band = 0): void {
   x = Math.round(x);
   y = Math.round(y);
   w = Math.round(w);
@@ -177,7 +177,7 @@ function plaque(g: CanvasRenderingContext2D, x: number, y: number, w: number, h:
 }
 
 /** Texte à l'encre sur une étiquette opaque : lisible quel que soit le décor derrière (ciel de jour, grotte). */
-function label(g: CanvasRenderingContext2D, text: string, x: number, y: number, scale: number, fill: string, align: 'left' | 'center' | 'right'): void {
+export function label(g: CanvasRenderingContext2D, text: string, x: number, y: number, scale: number, fill: string, align: 'left' | 'center' | 'right'): void {
   const pad = 9 * scale;
   const tw = g.measureText(text).width + 2 * pad;
   const th = 28 * scale;
@@ -260,7 +260,20 @@ export function drawHud(g: CanvasRenderingContext2D, game: Game, w: number, h: n
     g.fillStyle = ink;
     g.textAlign = 'left';
     g.fillText(n, x + 5 * scale, y + 10 * scale);
-    if (s) {
+    const tool = s ? toolOf(s.id) : null;
+    if (s && tool) {
+      // outil : jauge de durabilité en bas de la case, aplat plein (braise sous le quart), contour d'encre
+      const gw2 = l.size - 4 * edge;
+      const gx2 = x + 2 * edge;
+      const gy2 = y + l.size - 2 * edge - 6 * scale;
+      const ratio = Math.min(1, Math.max(0, (s.dur ?? tool.dura) / tool.dura));
+      g.fillStyle = ENCRE;
+      g.fillRect(gx2 - scale, gy2 - scale, gw2 + 2 * scale, 6 * scale + 2 * scale);
+      g.fillStyle = PAPIER;
+      g.fillRect(gx2, gy2, gw2, 6 * scale);
+      g.fillStyle = ratio <= 0.25 ? BRAISE : sel ? ECUME : CUIVRE;
+      g.fillRect(gx2, gy2, Math.max(scale, Math.round(gw2 * ratio)), 6 * scale);
+    } else if (s) {
       // quantité : petite étiquette de papier collée dans le coin
       const c = String(s.count);
       const cw = g.measureText(c).width + 6 * scale;
@@ -284,7 +297,9 @@ export function drawHud(g: CanvasRenderingContext2D, game: Game, w: number, h: n
   const cur = game.inv.current();
   if (cur) {
     g.font = `700 ${17 * scale}px ${FONT}`;
-    label(g, blockDef(cur.id).name, inset.left + (w - inset.left - inset.right) / 2, l.y - 28 * scale, scale, PAPIER, 'center');
+    const t = toolOf(cur.id);
+    const text = t ? `${nameOf(cur.id)} ${cur.dur ?? t.dura}/${t.dura}` : nameOf(cur.id);
+    label(g, text, inset.left + (w - inset.left - inset.right) / 2, l.y - 28 * scale, scale, PAPIER, 'center');
   }
 
   // vie : pictogramme, jauge braise pleine et valeur chiffrée (jamais la couleur seule) ; sous le seuil bas,

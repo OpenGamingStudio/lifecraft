@@ -25,24 +25,27 @@ describe('barre de cases (HUD)', () => {
     }
   }
 
-  it('montre les huit cases quand elles tiennent, sinon une fenêtre de cinq cases défilables', () => {
+  it('montre toutes les cases quand elles tiennent, sinon une fenêtre de cinq cases défilables', () => {
     expect(hotbarLayout(320, 568, uiScale(320, 568, 1)).cols).toBe(VISIBLE);
     expect(hotbarLayout(375, 667, uiScale(375, 667, 1)).cols).toBe(VISIBLE);
-    expect(hotbarLayout(568, 320, uiScale(568, 320, 1)).cols).toBe(HOTBAR);
-    expect(hotbarLayout(768, 1024, uiScale(768, 1024, 1)).cols).toBe(HOTBAR);
+    expect(hotbarLayout(568, 320, uiScale(568, 320, 1)).cols).toBe(VISIBLE);
+    expect(hotbarLayout(768, 1024, uiScale(768, 1024, 1)).cols).toBe(VISIBLE);
+    expect(hotbarLayout(1024, 768, uiScale(1024, 768, 1)).cols).toBe(HOTBAR);
+    expect(hotbarLayout(1440, 900, uiScale(1440, 900, 1)).cols).toBe(HOTBAR);
   });
 
-  it('barre réduite : le défilement amène les cases 6 à 8 dans la fenêtre, borné aux deux bouts', () => {
+  it('barre réduite : le défilement amène les dernières cases dans la fenêtre, borné aux deux bouts', () => {
     const at = (first: number) => hotbarLayout(320, 568, 1, undefined, first);
-    const l = at(3);
-    for (let i = 3; i < HOTBAR; i++) {
+    const first = HOTBAR - VISIBLE;
+    const l = at(first);
+    for (let i = first; i < HOTBAR; i++) {
       const r = slotRect(l, i);
       expect(r.x).toBeGreaterThanOrEqual(0);
       expect(r.x + l.size).toBeLessThanOrEqual(320);
       expect(slotAt(l, r.x + l.size / 2, r.y + l.size / 2)).toBe(i);
     }
     // les cases sorties de la fenêtre ne se choisissent pas
-    const hidden = slotRect(l, 2);
+    const hidden = slotRect(l, first - 1);
     expect(slotAt(l, hidden.x + l.size / 2, hidden.y + 5)).toBe(-1);
     expect(at(99).scroll).toBe(l.scroll);
     expect(at(-4).scroll).toBe(0);

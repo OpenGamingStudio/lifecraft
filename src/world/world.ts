@@ -28,7 +28,46 @@ export class World {
   }
 }
 
-export function generateWorld(seed: number, w: number, h: number): World {
+/** Emprise d'un arbre : colonne x, sommet du tronc y0, jusqu'au sol. */
+export interface TreeBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+/**
+ * Arbres déterministes sur les colonnes libres de la surface (graine seule). `keep` laisse l'appelant écarter un arbre
+ * (une vieille sauvegarde où le joueur a déjà bâti ou creusé à cet endroit).
+ */
+export function growTrees(world: World, keep?: (box: TreeBox) => boolean): void {
+  const { seed, w } = world;
+  const mid = Math.floor(w / 2);
+  let last = -99;
+  for (let x = 4; x < w - 4; x++) {
+    if (Math.abs(x - mid) <= 4 || x - last < 5 || hash2(seed, x, 901) >= 0.16) continue;
+    const s = world.surface[x];
+    // colonne libre : sol de mousse, voisins à hauteur proche, rien au-dessus
+    if (world.tiles[s * w + x] !== B.MOSS || Math.abs(world.surface[x - 2] - s) > 3 || Math.abs(world.surface[x + 2] - s) > 3) continue;
+    const height = 4 + Math.floor(hash2(seed, x, 902) * 3);
+    const top = s - height;
+    const box = { x0: x - 2, y0: top - 2, x1: x + 2, y1: s - 1 };
+    if (top < 3 || (keep && !keep(box))) continue;
+    last = x;
+    for (let y = s - 1; y >= top; y--) world.tiles[y * w + x] = B.LOG;
+    for (let dy = -2; dy <= 0; dy++) {
+      const half = dy === 0 ? 1 : 2;
+      for (let dx = -half; dx <= half; dx++) {
+        const lx = x + dx;
+        const ly = top + dy;
+        const i = ly * w + lx;
+        if (world.tiles[i] === B.AIR) world.tiles[i] = B.LEAVES;
+      }
+    }
+  }
+}
+
+export function generateWorld(seed: number, w: number, h: number, keepTree?: (box: TreeBox) => boolean): World {
   const world = new World(w, h, seed);
   const base = h * 0.32;
   for (let x = 0; x < w; x++) {
@@ -56,5 +95,6 @@ export function generateWorld(seed: number, w: number, h: number): World {
       world.tiles[y * w + x] = id;
     }
   }
+  growTrees(world, keepTree);
   return world;
 }

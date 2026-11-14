@@ -104,9 +104,9 @@ describe('inventaire', () => {
     expect(inv2.slots[0]).toEqual({ id: B.COPPER, count: 7 });
     expect(inv2.selected).toBe(3);
   });
-  it('reprend une sauvegarde à neuf cases : la neuvième rejoint une pile ou une case libre', () => {
+  it('reprend une sauvegarde plus longue que la barre : le surplus rejoint une pile ou une case libre', () => {
     const inv = new Inventory();
-    inv.load([[B.STONE, 90], null, [B.IRON, 4], null, null, null, null, null, [B.STONE, 20]], 8);
+    inv.load([[B.STONE, 90], null, [B.IRON, 4], null, null, null, null, null, null, null, null, null, [B.STONE, 20]], 12);
     expect(inv.slots).toHaveLength(HOTBAR);
     expect(inv.slots[0]).toEqual({ id: B.STONE, count: 99 });
     expect(inv.slots[1]).toEqual({ id: B.STONE, count: 11 });

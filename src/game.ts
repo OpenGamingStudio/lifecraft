@@ -1,4 +1,5 @@
 import { FALL_DAMAGE_PER_SPEED, FALL_SAFE_SPEED, LOW_HP, MAX_HP, WORLD_H, WORLD_W } from './constants';
+import { benchNear, dropFor, itemDef, miningSpeed, RECIPES, type Recipe } from './items';
 import { Inventory } from './player/inventory';
 import { advanceMining, canPlace, inReach, type MiningState } from './player/mining';
 import { Particles } from './player/particles';
@@ -9,7 +10,7 @@ import { advance, START_PHASE } from './world/daycycle';
 import { LightMap } from './world/lighting';
 import { generateWorld, type World } from './world/world';
 
-export type SfxName = 'mine' | 'break' | 'place' | 'jump' | 'land' | 'hurt' | 'die' | 'respawn' | 'full';
+export type SfxName = 'mine' | 'break' | 'place' | 'jump' | 'land' | 'hurt' | 'die' | 'respawn' | 'full' | 'craft' | 'snap';
 
 export interface Controls {
   move: -1 | 0 | 1;
@@ -71,7 +72,7 @@ export class Game {
 
   serialize(): SaveData {
     return {
-      v: 1,
+      v: 2,
       seed: this.world.seed,
       edits: diffEdits(this.world),
       player: { x: this.player.x, y: this.player.y },
@@ -143,7 +144,8 @@ export class Game {
     const aim = c.aim;
     if (c.mine && aim && inReach(this.player, aim.x, aim.y)) {
       this.swing += dt;
-      const r = advanceMining(this.world, this.mining, aim.x, aim.y, dt);
+      const held = this.inv.current();
+      const r = advanceMining(this.world, this.mining, aim.x, aim.y, dt * miningSpeed(held?.id, this.world.get(aim.x, aim.y)));
       this.mining = r.state;
       const id = this.world.get(aim.x, aim.y);
       if (r.broken) this.breakBlock(aim.x, aim.y);
@@ -169,7 +171,7 @@ export class Game {
 
   private breakBlock(tx: number, ty: number): void {
     const id = this.world.get(tx, ty);
-    const drop = blockDef(id).drop;
+    const drop = dropFor(this.world.seed, tx, ty, id);
     if (drop && !this.inv.canAdd(drop)) {
       this.say('Sac plein.');
       this.onSfx('full');
@@ -180,6 +182,33 @@ export class Game {
     if (drop) this.inv.add(drop);
     this.burst(tx, ty, id, 10);
     this.onSfx('break');
+    this.wearTool(id);
+  }
+
+  /** Un bloc cassé avec l'outil de la bonne famille l'use d'un cran ; à zéro, il se brise avec un bruit sec et des éclats. */
+  private wearTool(blockId: number): void {
+    const i = this.inv.selected;
+    const held = this.inv.current();
+    if (!held || miningSpeed(held.id, blockId) === 1) return;
+    if (!this.inv.wear(i)) return;
+    const d = itemDef(held.id);
+    const p = this.player;
+    const n = this.reducedMotion ? 2 : 12;
+    this.particles.burst(p.x + p.facing * 0.7, p.y - p.h * 0.6, d?.accent ?? '#7a5230', n);
+    this.say(`${d?.name ?? 'Outil'} s'est brisé.`);
+    this.onSfx('snap');
+  }
+
+  /** Fabrique une recette depuis la feuille ; renvoie le motif d'un refus, ou null si c'est fait. */
+  craft(r: Recipe): string | null {
+    if (r.bench && !benchNear(this.world, this.player.x, this.player.y)) return 'Il faut un Banc d\'artisan à portée.';
+    if (!this.inv.craft(r)) return this.inv.clone().canCraft({ ...r, gives: [] }) ? 'Sac plein.' : 'Il manque des ingrédients.';
+    this.onSfx('craft');
+    return null;
+  }
+
+  recipes(): Recipe[] {
+    return RECIPES;
   }
 
   private burst(tx: number, ty: number, id: number, n: number): void {

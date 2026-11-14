@@ -74,7 +74,7 @@ export function loadWorld(data: SaveData): World {
     const touched = new Set<number>();
     for (let k = 0; k + 1 < data.edits.length; k += 2) touched.add(data.edits[k]);
     keep = (b) => {
-      for (let y = b.y0 - 1; y <= b.y1 + 1; y++) for (let x = b.x0 - 1; x <= b.x1 + 1; x++) if (touched.has(y * WORLD_W + x)) return false;
+      for (let y = b.y0 - 1; y <= b.y1 + 1; y++) for (let x = Math.max(0, b.x0 - 1); x <= Math.min(WORLD_W - 1, b.x1 + 1); x++) if (touched.has(y * WORLD_W + x)) return false;
       return true;
     };
   }

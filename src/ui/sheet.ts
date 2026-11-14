@@ -168,7 +168,7 @@ export function drawSheet(g: CanvasRenderingContext2D, game: Game, w: number, h:
     g.fillStyle = ENCRE;
     g.textAlign = 'center';
     g.font = `700 ${14 * scale}px ${FONT}`;
-    g.fillText(ok ? 'Faire' : 'Manque', Math.round(bx + l.btnW / 2), Math.round(by + l.btnH / 2 + scale));
+    g.fillText(ok ? 'Faire' : r.bench && !bench && game.inv.canCraft(r) ? 'Banc' : 'Manque', Math.round(bx + l.btnW / 2), Math.round(by + l.btnH / 2 + scale));
   });
   g.restore();
 

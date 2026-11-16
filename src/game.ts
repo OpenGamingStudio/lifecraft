@@ -1,3 +1,4 @@
+import { DEFAULT_OUTFIT, type Outfit } from './cosmetics';
 import { FALL_DAMAGE_PER_SPEED, FALL_SAFE_SPEED, LOW_HP, MAX_HP, WORLD_H, WORLD_W } from './constants';
 import { benchNear, dropFor, itemDef, miningSpeed, RECIPES, type Recipe } from './items';
 import { Inventory } from './player/inventory';
@@ -40,6 +41,7 @@ export class Game {
   message = '';
   messageTimer = 0;
   walkPhase = 0;
+  outfit: Outfit = { ...DEFAULT_OUTFIT };
   swing = 0;
   reducedMotion = false; // prefers-reduced-motion : ni secousse ni clignotement, peu de particules
   private acc = 0;

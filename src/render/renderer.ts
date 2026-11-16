@@ -126,7 +126,7 @@ export class Renderer {
     if (game.deadTimer === 0 || Math.floor(game.deadTimer * 10) % 2 === 0) {
       g.save();
       g.translate(Math.round(ox + (p.x - x0) * T), Math.round(oy + (p.y - y0) * T));
-      drawPlayer(g, p, T / 14.5, game.walkPhase, !!m, game.swing, game.deadTimer > 0 ? 0.5 : 1);
+      drawPlayer(g, p, T / 14.5, game.walkPhase, !!m, game.swing, game.deadTimer > 0 ? 0.5 : 1, game.outfit, game.reducedMotion ? 0 : performance.now() / 1000);
       g.restore();
     }
 

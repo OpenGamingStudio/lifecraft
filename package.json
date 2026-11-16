@@ -1,6 +1,6 @@
 {
   "name": "lifecraft",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "LifeCraft : jeu de sandbox et de survie 2D vu de côté, jouable dans le navigateur et sur mobile.",
   "license": "MIT",

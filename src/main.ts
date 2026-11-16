@@ -6,6 +6,9 @@ import { Renderer } from './render/renderer';
 import { readSave, clearSave, writeSave } from './save';
 import { clampScroll, drawSheet, Sheet, sheetHit, sheetLayout } from './ui/sheet';
 import { RECIPES } from './items';
+import { COSMETICS, SLOTS, loadOutfit, saveOutfit } from './cosmetics';
+import { drawPlayer } from './render/sprite';
+import { VERSION } from './version';
 import { BarScroll, barAt, drawHud, hotbarLayout, hudHeight, slotAt, type Insets } from './ui/hud';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
@@ -24,6 +27,8 @@ const sfx = new Sfx();
 const saved = readSave();
 const game = new Game(saved ? saved.seed : (Math.random() * 2 ** 31) | 0, saved);
 game.onSfx = (n) => sfx.play(n);
+game.outfit = loadOutfit();
+$('mVersion').textContent = `LifeCraft v${VERSION}`;
 const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
 game.reducedMotion = calm.matches;
 calm.addEventListener('change', () => (game.reducedMotion = calm.matches));
@@ -64,7 +69,7 @@ const input = new Input(
     onBarDrop: () => bar.drop(),
     onSelect: (i) => game.inv.select(i),
     onGesture: () => sfx.unlock(),
-    onMenu: () => (sheet.open ? sheet.close() : setMenu(!menuOpen)),
+    onMenu: () => (wardrobeOpen ? setWardrobe(false) : sheet.open ? sheet.close() : setMenu(!menuOpen)),
     sheetOpen: () => sheet.open && !menuOpen,
     onCraft: () => {
       if (menuOpen) return;
@@ -136,6 +141,65 @@ $('mNew').addEventListener('click', () => {
   renderer.follow(game, 0);
   setMenu(false);
 });
+// Garde-robe : l'aperçu est le vrai dessin du personnage, en marche sur place
+const wardrobe = $('wardrobe');
+const wCanvas = $('wPreview') as HTMLCanvasElement;
+const wg = wCanvas.getContext('2d')!;
+let wardrobeOpen = false;
+function buildWardrobe(): void {
+  const list = $('wList');
+  list.replaceChildren();
+  for (const sl of SLOTS) {
+    const h = document.createElement('h3');
+    h.className = 'w-slot';
+    h.textContent = sl.label;
+    const row = document.createElement('div');
+    row.className = 'w-row';
+    for (const c of COSMETICS.filter((x) => x.slot === sl.slot)) {
+      const b = document.createElement('button');
+      b.className = 'plaque biseau-b w-item';
+      b.setAttribute('aria-pressed', String(game.outfit[sl.slot] === c.id));
+      b.append(c.name);
+      const sub = document.createElement('small');
+      sub.textContent = `${c.rarity} · ${c.theme}`;
+      b.append(sub);
+      b.addEventListener('click', () => {
+        game.outfit = { ...game.outfit, [sl.slot]: c.id };
+        saveOutfit(game.outfit);
+        $('wInfo').textContent = `${c.name} : ${c.hint}`;
+        buildWardrobe();
+        sfx.unlock();
+      });
+      row.append(b);
+    }
+    list.append(h, row);
+  }
+}
+function setWardrobe(open: boolean): void {
+  wardrobeOpen = open;
+  wardrobe.classList.toggle('on', open);
+  if (open) {
+    buildWardrobe();
+    $('wBack').focus();
+  } else $('mWardrobe').focus();
+}
+function drawPreview(now: number): void {
+  if (!wardrobeOpen) return;
+  const t = now / 1000;
+  wg.clearRect(0, 0, 160, 160);
+  wg.fillStyle = '#b8f1f0';
+  wg.fillRect(0, 0, 160, 160);
+  wg.fillStyle = '#8ee07a';
+  wg.fillRect(0, 128, 160, 32);
+  wg.save();
+  wg.translate(80, 128);
+  const body = { x: 0, y: 0, vx: 3, vy: 0, w: 0, h: 0, onGround: true, facing: 1, coyote: 0 } satisfies Parameters<typeof drawPlayer>[1];
+  drawPlayer(wg, body, 4, game.reducedMotion ? 0 : t * 0.9, false, 0, 1, game.outfit, game.reducedMotion ? 0 : t);
+  wg.restore();
+}
+$('mWardrobe').addEventListener('click', () => setWardrobe(true));
+$('wBack').addEventListener('click', () => setWardrobe(false));
+wardrobe.addEventListener('pointerdown', (e) => e.stopPropagation());
 menu.addEventListener('pointerdown', (e) => e.stopPropagation());
 
 const g2 = canvas.getContext('2d')!;
@@ -154,6 +218,7 @@ function frame(now: number): void {
     game.controls.aim = hv ? renderer.screenToTile(hv.x * renderer.dpr, hv.y * renderer.dpr) : null;
     game.update(dt);
   }
+  drawPreview(now);
   renderer.follow(game, menuOpen ? 0.0001 : dt);
   renderer.render(game);
   drawHud(g2, game, renderer.w, renderer.h, renderer.uiScale, renderer.atlas, { muted: sfx.muted, inset, first: bar.pos, pressed: input.pressed });

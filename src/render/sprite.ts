@@ -1,3 +1,4 @@
+import { DEFAULT_OUTFIT, SCARF_COLOR, drawBack, drawFace, drawHat, type Outfit, type Pose } from '../cosmetics';
 import type { Body } from '../player/physics';
 
 /** Explorateur dessiné en code : pieds au point (0,0), unité u = pixels par pixel de sprite. */
@@ -9,6 +10,8 @@ export function drawPlayer(
   mining: boolean,
   swing: number,
   alpha: number,
+  outfit: Outfit = DEFAULT_OUTFIT,
+  time = 0,
 ): void {
   g.save();
   g.globalAlpha = alpha;
@@ -17,6 +20,7 @@ export function drawPlayer(
   const rising = !b.onGround && b.vy < 0;
   const falling = !b.onGround && b.vy >= 0;
   const swingA = moving ? Math.sin(walk * Math.PI * 2) * 0.7 : 0;
+  const idle = moving || !b.onGround ? 0 : (Math.sin(time * 2.4) + 1) * 0.25 * u; // respiration
   const bob = moving ? Math.abs(Math.sin(walk * Math.PI * 2)) * u * 0.8 : 0;
   const limb = (x: number, y: number, w: number, h: number, ang: number, col: string) => {
     g.save();
@@ -27,19 +31,25 @@ export function drawPlayer(
     g.restore();
   };
   const hipY = -8 - 0;
+  const pose: Pose = { t: time, vy: b.vy, run: moving ? Math.min(1, Math.abs(b.vx) / 6) : 0, flap: 0 };
+  const rect = (x: number, y: number, w: number, h: number, c: string) => {
+    g.fillStyle = c;
+    g.fillRect(x * u, y * u, w * u, h * u);
+  };
   // jambes
   const legBack = rising ? -0.5 : falling ? 0.35 : -swingA;
   const legFront = rising ? 0.6 : falling ? -0.35 : swingA;
   limb(-1.5, hipY, 3, 8, legBack, '#2c3e50');
   limb(1.5, hipY, 3, 8, legFront, '#34495e');
-  g.translate(0, -bob);
+  g.translate(0, -bob - idle);
+  drawBack(outfit.back, rect, pose);
   // bras arrière
   const armUp = falling ? -2.6 : 0;
   limb(0, -17, 3, 7, armUp ? armUp : -swingA * 0.9, '#c2793d');
   // torse
   g.fillStyle = '#2f8f83';
   g.fillRect(-4 * u, -18 * u, 8 * u, 10 * u);
-  g.fillStyle = '#e6a52c'; // écharpe
+  g.fillStyle = SCARF_COLOR[outfit.scarf] ?? '#e6a52c'; // écharpe
   g.fillRect(-4.5 * u, -19 * u, 9 * u, 2 * u);
   g.fillRect(-6 * u, -18 * u, 2 * u, 5 * u);
   // tête
@@ -49,7 +59,10 @@ export function drawPlayer(
   g.fillRect(-3.5 * u, -26 * u, 7 * u, 2 * u);
   g.fillRect(-3.5 * u, -26 * u, 2 * u, 5 * u);
   g.fillStyle = '#1d1d24';
-  g.fillRect(1 * u, -23 * u, 1.4 * u, 1.6 * u);
+  const blink = Math.sin(time * 1.3) > 0.985;
+  g.fillRect(1 * u, (blink ? -22.4 : -23) * u, 1.4 * u, (blink ? 0.5 : 1.6) * u);
+  drawFace(outfit.face, rect);
+  drawHat(outfit.hat, rect, pose);
   // bras avant (et pioche en cours de minage)
   if (mining) {
     const a = -1.2 + Math.sin(swing * 14) * 0.9;

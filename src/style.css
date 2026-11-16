@@ -136,3 +136,16 @@
   .volet > .plaque { transform: none; opacity: 0; transition: opacity 150ms linear !important; }
   .volet.on > .plaque { opacity: 1; }
 }
+
+/* Garde-robe : une rangée de pièces par emplacement, la pièce portée est en miel. */
+@layer components {
+  .w-slot { @apply m-0 mb-1 mt-3 text-[15px] font-semibold; }
+  .w-row { @apply flex flex-wrap gap-2; }
+  .w-item {
+    --fond: var(--color-papier);
+    @apply cursor-pointer border-0 bg-transparent px-3 text-left text-[15px] font-semibold text-encre min-h-11
+      active:translate-x-[3px] active:translate-y-[3px] active:filter-none;
+  }
+  .w-item[aria-pressed="true"] { --fond: var(--color-miel); }
+  .w-item small { @apply block text-[12px] font-medium opacity-70; }
+}
